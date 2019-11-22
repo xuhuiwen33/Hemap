@@ -20,8 +20,8 @@ def process_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--num', default=999, type=int, help='')
     parser.add_argument('-l', '--log', default=6, type=int, help='')
-    parser.add_argument('-s', '--source', default='australian', type=str, help='')
-    parser.add_argument('-t', '--target', default='german', type=str, help='')
+    parser.add_argument('-s', '--source', default='german', type=str, help='')
+    parser.add_argument('-t', '--target', default='australian', type=str, help='')
     parser.add_argument('--lr', default=0.001, type=float, help='')
     parser.add_argument('--epoch', default=10, type=int, help='')
     parser.add_argument('--batch', default=32, type=int, help='')
@@ -35,6 +35,7 @@ def process_parser():
     parser.add_argument('--k', default=5, type=int, help='')
     parser.add_argument('--count', default=5, type=int, help='')
     parser.add_argument('--gpu', default='0', type=str, help='')
+    parser.add_argument('--topk', default=50, type=int, help='')
     return parser
 
 
@@ -122,6 +123,10 @@ if __name__ == '__main__':
     #                                        num_workers=1)
 
 
-    # Make batch data
+    # Random sampling
+    rand_index = np.random.randint(len(src_train), size=len(tar_train))
+    src_train = src_train[rand_index]
 
-    model = HEMAP(src_train, tar_train, BETA, THETA)
+    model = HEMAP(src_train, tar_train, args)
+    src_projected, tar_projected = model.make_projected_data()
+
