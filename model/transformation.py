@@ -15,6 +15,11 @@ class HEMAP:
         self.theta = args.theta
         self.topk = args.topk
 
+        self.src_partition_onehot, self.tar_partition_onehot = self.generate_partition_matrix()
+        self.a = self.construct_a_matrix()
+        self.U = self.calculate_eigenvalue()
+        self.src_projected, self.tar_projected = self.make_projected_data()
+
     @staticmethod
     def one_hot(x):
         x = x.reshape([-1, 1])
@@ -37,9 +42,8 @@ class HEMAP:
 
         return src_partition_onehot, tar_partition_onehot
 
-    @property
     def construct_a_matrix(self):
-        c_s, c_t = self.generate_partition_matrix()
+        c_s, c_t = self.src_partition_onehot, self.tar_partition_onehot
         a_1 = 2 * self.theta ** 2 * np.matmul(self.tar_feature, np.transpose(self.tar_feature)) + \
               self.beta ** 2 / 2 * np.matmul(self.src_feature, np.transpose(self.src_feature)) + \
               (1 - self.theta) * (self.beta + 2 * self.theta) * np.matmul(c_t, np.transpose(c_t))
@@ -56,12 +60,16 @@ class HEMAP:
         return a
 
     def calculate_eigenvalue(self):
-        a = self.construct_a_matrix
+        a = self.a
         U, _, _ = svd(a)
         return U[:, :self.topk]
 
     def make_projected_data(self):
-        U = self.calculate_eigenvalue()
+        U = self.U
         bt = U[:len(U)//2]
         bs = U[len(U)//2:]
-        return bt, bs
+
+        src_projected = np.concatenate((bs, self.src_label.reshape([-1, 1])), axis=1)
+        tar_projected = np.concatenate((bt, self.tar_label.reshape([-1, 1])), axis=1)
+
+        return src_projected, tar_projected

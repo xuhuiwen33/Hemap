@@ -10,6 +10,7 @@ import numpy as np
 from loadData.dataloader import load_data, k_fold_train_val, Dataset
 from utils.util import mkdir
 from model.transformation import HEMAP
+from model.kl_divergence import KLDivergence
 
 
 def process_parser():
@@ -36,6 +37,7 @@ def process_parser():
     parser.add_argument('--count', default=5, type=int, help='')
     parser.add_argument('--gpu', default='0', type=str, help='')
     parser.add_argument('--topk', default=50, type=int, help='')
+    parser.add_argument('--kclusters', default=10, type=int, help='')
     return parser
 
 
@@ -127,6 +129,7 @@ if __name__ == '__main__':
     rand_index = np.random.randint(len(src_train), size=len(tar_train))
     src_train = src_train[rand_index]
 
-    model = HEMAP(src_train, tar_train, args)
-    src_projected, tar_projected = model.make_projected_data()
+    hemap = HEMAP(src_train, tar_train, args)
+    src_projected, tar_projected = hemap.make_projected_data()
 
+    kl_divergence = KLDivergence(src_projected, tar_projected, args)
